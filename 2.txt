@@ -1,0 +1,268 @@
+1. Program to implement a language to an intermediate form (three address code)
+
+def generate_tac(expression):
+    tokens = expression.split()
+    tac = []
+    temp_count = 0
+
+    def generate_temp():
+        nonlocal temp_count
+        temp_count += 1
+        return f"t{temp_count}"
+
+
+    for i in range(0, len(tokens), 2):
+        if i >= len(tokens) - 2:  
+            break
+
+        if i == 0:
+            left_operand = tokens[i]
+        else:
+            left_operand = tac[-1][-1]
+        operator = tokens[i + 1]
+        right_operand = tokens[i + 2]
+        temp = generate_temp()
+        tac.append((operator, left_operand, right_operand, temp))
+
+    return tac
+
+def main():
+    expression = input("Enter an expression : ")
+    tac = generate_tac(expression)
+    print("\nThree Address Code:")
+    for op, left, right, result in tac:
+        print(f"{result} = {left} {op} {right}")
+
+if __name__ == "__main__":
+    main()
+
+ip:
+a + b * c
+(give spaces bw operators and operands in the above input)
+
+-----------------------------------------------------------------------------------------------------------
+
+2. Program to improve target code with the help of optimization techniques
+Ex: Dead code elimination and common subexpression elimination optimization
+technique
+
+// Dead code elimination
+#include<stdio.h>
+#include<string.h>
+
+struct operation {
+    char left;
+    char right[20];
+};
+
+void main() {
+    int i, j, k, n, z = 0;
+    struct operation op[10], pr[10];
+    char temp;
+    char *p, *l;
+
+    printf("Enter the Number of Values: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+        printf("left: ");
+        scanf(" %c", &op[i].left);
+        printf("right: ");
+        scanf(" %s", op[i].right);
+    }
+
+    printf("Intermediate Code\n");
+    for (i = 0; i < n; i++) {
+        printf("%c = %s\n", op[i].left, op[i].right);
+    }
+
+    for (i = 0; i < n; i++) {
+        temp = op[i].left;
+        for (j = 0; j < n; j++) {
+            p = strchr(op[j].right, temp);
+            if (p) {
+                pr[z].left = op[i].left;
+                strcpy(pr[z].right, op[i].right);
+                z++;
+                break;
+            }
+        }
+    }
+
+    printf("\nAfter Dead Code Elimination\n");
+    for (k = 0; k < z; k++) {
+        printf("%c = %s\n", pr[k].left, pr[k].right);
+    }
+
+    for (i = 0; i < z; i++) {
+        for (j = i + 1; j < z; j++) {
+            if (strcmp(pr[i].right, pr[j].right) == 0) {
+                pr[j].left = '\0';
+            }
+        }
+    }
+
+    printf("Optimized Code\n");
+    for (i = 0; i < z; i++) {
+        if (pr[i].left != '\0') {
+            printf("%c = %s\n", pr[i].left, pr[i].right);
+        }
+    }
+}
+
+ip:
+Enter the Number of Values: 5
+left: a
+right: 9
+left: b
+right: c+d
+left: e
+right: c+d
+left: f
+right: b+e
+left: f
+right: f
+
+op:
+Intermediate Code
+a = 9
+b = c+d
+e = c+d
+f = b+e
+f = f
+
+After Dead Code Elimination
+b = c+d
+e = c+d
+f = b+e
+f = f
+Optimized Code
+b = c+d
+f = b+e
+f = f
+
+----------------------------------------------------------------------------------------------------------
+
+3. Write a program to generate code (Assembly Language code).
+
+def generate_assembly_code(tac):
+    assembly_code = []
+
+    for op, left, right, result in tac:
+        if op == '+':
+            assembly_code.append(f"ADD {left}, {right}, {result}")
+        elif op == '-':
+            assembly_code.append(f"SUB {left}, {right}, {result}")
+        elif op == '*':
+            assembly_code.append(f"MUL {left}, {right}, {result}")
+        elif op == '/':
+            assembly_code.append(f"DIV {left}, {right}, {result}")
+        elif op == '=':
+            assembly_code.append(f"MOV {left}, {result}")
+
+    return assembly_code
+
+def main():
+    tac = [
+        ('+', 'a', 'b', 't1'),
+        ('-', 't1', 'c', 't2'),
+        ('=', 't2', '', 'd')
+    ]
+
+    assembly_code = generate_assembly_code(tac)
+
+    print("Generated Assembly Language Code:")
+    for instruction in assembly_code:
+        print(instruction)
+
+if __name__ == "__main__":
+    main()
+
+op:
+Generated Assembly Language Code:
+ADD a, b, t1
+SUB t1, c, t2
+MOV t2, d
+
+----------------------------------------------------------------------------------------------------------
+
+4. Program to implement mini compiler with phases.
+
+class Compiler:
+    def __init__(self):
+        self.temp_count = 0
+        self.ls = []
+
+    def generate_temp(self):
+        temp_name = f"t{self.temp_count}"
+        self.temp_count += 1
+        return temp_name
+
+    def compile_expression(self, expression):
+        tokens = expression.split()
+        result = tokens[0]
+
+        for i in range(1, len(tokens), 2):
+            flag = 0
+            if len(tokens[i+1]) == 2 and tokens[i+1][0] == '-':
+                flag = 1
+                temp1 = self.generate_temp()
+                print(f"{temp1} = {tokens[i+1]}")
+                self.ls.append(f"{temp1} = {tokens[i+1]}")
+            op = tokens[i] 
+            operand = tokens[i+1]
+            temp = self.generate_temp()
+            if flag == 1:
+                operand = temp1
+            print(f"{temp} = {result} {op} {operand}")
+            self.ls.append(f"{temp} = {result} {op} {operand}")
+            result = temp
+
+        return result
+
+    def compile_assignment(self, assignment):
+        var, expr = assignment.split(' = ')
+        result = self.compile_expression(expr)
+        print(f"{var} = {result}")
+        self.ls.append(f"{var} = {result}")
+
+    def compile(self, code):
+        statements = code.split(';')
+        for statement in statements:
+            if '=' in statement:
+                self.compile_assignment(statement.strip())
+            elif statement.strip():
+                self.compile_expression(statement.strip())
+
+    def convertToAsm(self):
+        for i in self.ls:
+            var, expr = i.split(' = ')
+            tokens = expr.split()
+            if len(tokens) == 1:
+                print(f"MOV {var} {expr}")
+            else:
+                if tokens[1] == '+':
+                    print(f"ADD {var} {tokens[0]} {tokens[2]}")
+                elif tokens[1] == '*':
+                    print(f"MUL {var} {tokens[0]} {tokens[2]}")
+
+compiler = Compiler()
+code = """
+a = b * -c + d * -c ;
+"""
+compiler.compile(code)
+compiler.convertToAsm()
+
+op:
+t0 = -c
+t1 = b * t0
+t2 = t1 + d
+t3 = -c
+t4 = t2 * t3
+a = t4
+MOV t0 -c
+MUL t1 b t0
+ADD t2 t1 d
+MOV t3 -c
+MUL t4 t2 t3
+MOV a t4
